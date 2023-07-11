@@ -1,0 +1,52 @@
+On-chip Clock Controllers (OCC), also known as Scan Clock Controllers (SCC), are inserted in the SOC (System on a Chip) for controlling clocks during silicon testing on ATE (Automatic test Equipment).
+
+Since at-speed testing requires two clock pulses in capture mode with a frequency equal to the functional clock frequency, without OCC we would need to provide these at-speed pulses through I/O pads. However, these pads have limitations in terms of a maximum frequency they can support, whereas OCC on the other hand uses internal PLL clock for generating clock pulses for a test.
+
+During stuck-at testing, the OCC ensures only one clock pulse is generated in the capture phase. Similarly, during at-speed testing, the OCC ensures two clock pulses are generated in the capture phase, having a frequency equal to the functional clock's frequency.
+
+Therefore, all the test clocks in a scan-friendly design are routed through an OCC, which controls the clock operation in scan mode (both in stuck-at and at-speed testing) and bypasses the functional clock in functional mode.
+
+Here is a Systemverilog code example for the OCC:
+
+module occ
+#(
+     parameter SHIFT_REG_BITS = 5
+)
+(
+     input logic test_mode,
+     input logic atspeed_mode,
+     input logic shift_en,
+     input logic scan_clk,
+     input logic func_clk,
+     output logic occ_out_clk
+)
+     logic cg_en;
+     logic cg_out_clk;
+     logic sync_flop;
+     logic [SHIFT_REG_BITS-1:0] shift_reg;
+
+     always @(func_clk or cg_en) begin
+         if (cg_en == 1)
+             cg_out_clk = func_clk;
+         else
+             cg_out_clk = 0;
+     end
+     always_ff @(posedge scan_clk) begin
+         sync_flop <= ~shift_en;
+     end
+     always_ff @(posedge func_clk) begin
+         shift_reg <= shift_reg << 1;
+         shift_reg[0] <= sync_flop;
+     end
+     assign occ_out_clk = test_mode ? (shift_en ? scan_clk : cg_out_clk) : func_clk;
+     assign cg_en = atspeed_mode ? (~shift_reg[SHIFT_REG_BITS-1] & shift_reg[SHIFT_REG_BITS-3]) : (~shift_reg[SHIFT_REG_BITS-1] & shift_reg[SHIFT_REG_BITS-2]);
+endmodule
+
+
+
+The above OCC code corresponds to a basic design for the sake of demonstration. However, the industry-standard OCCs are much more advanced and robust to clock glitches than the one mentioned here (source).
+https://vlsitutorials.com/scan-on-chip-clock-controller/ 
+Also, the OCC structure is important in the sense that it allows for at-speed testing, enabling chips to operate at their high-frequency clock rates. This frequency is usually higher than the clock frequency of ATE (Automatic Test Equipment). This means that at least the launch and capture clocks for the chip must be internal high-frequency clocks. The OCC (on-chip clocking) resolves this issue (source).
+https://blog.csdn.net/cy413026/article/details/84302717
+Moreover, the clock architecture of a design needs to be modified to support 'Scan' operation. A way to mask the functional control in scan mode is by adding an On-chip Clock Controller (OCC) for every clock domain (source).
+https://vlsitutorials.com/dft-scan-clocking-architecture/
