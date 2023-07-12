@@ -12,3 +12,6 @@ Reset Recovery Time, Trec, is the minimum time between the de-assertion of a res
 总结，对于reset de-assert的clock沿， 
 1. to 左边这个沿, reset要保持一段最短时间 T_removal再de-assert
 2. to 右边这个沿, reset要在沿之前de-assert并保持稳定一段最短时间T_recovery
+
+延伸阅读
+https://vlsi.pro/recovery-and-removal-checks/
