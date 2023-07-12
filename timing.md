@@ -5,7 +5,7 @@ the Removal Time, Trem, refers to the minimum time, after the active clock edge,
 
 ![Uploading removal_recovery.png…]()
 
-Figure . Recovery and Removal Check Timing Diagram
+Figure . Recovery and Removal Check Timing Diagram (https://www.intel.com/content/www/us/en/docs/programmable/683539/20-4/recovery-and-removal-checks.html)
 
 Reset Recovery Time, Trec, is the minimum time between the de-assertion of a reset and the clock signal being high again. The reset Recovery Check ensures that the reset signal is stable for a minimum time after de-assertion, before the next active clock edge.
 
